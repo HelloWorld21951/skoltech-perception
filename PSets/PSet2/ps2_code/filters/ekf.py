@@ -12,12 +12,12 @@ from tools.task import wrap_angle
 
 
 class EKF(LocalizationFilter):
-    def predict(self, u):
+    def predict(self, u: np.ndarray):
         # TODO Implement here the EKF, perdiction part. HINT: use the auxiliary functions imported above from tools.task
         self._state_bar.mu = self.mu[np.newaxis].T
         self._state_bar.Sigma = self.Sigma
 
-    def update(self, z):
+    def update(self, z: np.ndarray):
         # TODO implement correction step
         self._state.mu = self._state_bar.mu
         self._state.Sigma = self._state_bar.Sigma

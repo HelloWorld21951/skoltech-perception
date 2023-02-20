@@ -15,7 +15,7 @@ class Gaussian(object):
     Represents a multi-variate Gaussian distribution representing the state of the robot.
     """
 
-    def __init__(self, mu, Sigma):
+    def __init__(self, mu: np.ndarray, Sigma: np.ndarray) -> None:
         """
         Sets the internal mean and covariance of the Gaussian distribution.
 
@@ -28,12 +28,12 @@ class Gaussian(object):
         assert Sigma.shape == (3, 3)
 
         if mu.ndim < 1:
-            raise ValueError('The mean must be a 1D numpy ndarray of size 3.')
+            raise ValueError("The mean must be a 1D numpy ndarray of size 3.")
         elif mu.shape == (3,):
             # This transforms the 1D initial state mean into a 2D vector of size 3x1.
             mu = mu[np.newaxis].T
         elif mu.shape != (3, 1):
-            raise ValueError('The mean must be a vector of size 3x1.')
+            raise ValueError("The mean must be a vector of size 3x1.")
 
         self.mu = mu
         self.Sigma = Sigma
@@ -44,7 +44,7 @@ class FilterInputData(object):
     Represents the data that is available to the filter while estimating the robot state.
     """
 
-    def __init__(self, motion_commands, observations):
+    def __init__(self, motion_commands: np.ndarray, observations: np.ndarray) -> None:
         """
         Sets the internal data available to robot state estimation filter.
         Let N be the number of steps in the robot state estimation simulation.
@@ -67,7 +67,12 @@ class FilterDebugData(object):
     Contains data only available for debugging/displaying purposes during robot state estimation.
     """
 
-    def __init__(self, real_robot_path, noise_free_robot_path, noise_free_observations):
+    def __init__(
+        self,
+        real_robot_path: np.ndarray,
+        noise_free_robot_path: np.ndarray,
+        noise_free_observations: np.ndarray,
+    ) -> None:
         """
         Sets the internal data only available for debugging purposes to the state estimation filter.
         Let N be the number of steps in the robot state estimation filter.
@@ -83,7 +88,9 @@ class FilterDebugData(object):
 
         assert real_robot_path.ndim >= 2 and real_robot_path.shape[1] == 3
         assert noise_free_robot_path.ndim >= 2 and noise_free_robot_path.shape[1] == 3
-        assert noise_free_observations.ndim >= 2 and noise_free_observations.shape[1] == 2
+        assert (
+            noise_free_observations.ndim >= 2 and noise_free_observations.shape[1] == 2
+        )
 
         self.real_robot_path = real_robot_path
         self.noise_free_robot_path = noise_free_robot_path
@@ -95,7 +102,9 @@ class SimulationData(object):
     Contains all data necessary to run the robot state estimation simulation.
     """
 
-    def __init__(self, num_steps, filter_data, debug_data):
+    def __init__(
+        self, num_steps: int, filter_data: FilterInputData, debug_data: FilterDebugData
+    ) -> None:
         """
         Initializes the internal variables.
 
@@ -114,7 +123,9 @@ class SimulationData(object):
 
 
 class FilterTrajectory(object):
-    def __init__(self, mean_trajectory, covariance_trajectory=None):
+    def __init__(
+        self, mean_trajectory: np.ndarray, covariance_trajectory: np.ndarray = None
+    ) -> None:
         """
         Contains trajectories estimated by the localization filter for the input data.
         Let N be the number of time steps and M be the number of particles (only for the PF).
@@ -136,6 +147,9 @@ class FilterTrajectory(object):
             return
 
         assert isinstance(covariance_trajectory, np.ndarray)
-        assert covariance_trajectory.ndim == 3 and covariance_trajectory.shape[:-1] == (3, 3)
+        assert covariance_trajectory.ndim == 3 and covariance_trajectory.shape[:-1] == (
+            3,
+            3,
+        )
 
         self.covariance = covariance_trajectory

@@ -9,6 +9,8 @@ g.ferrer@skoltech.ru
 This file contains all utilities for plotting data.
 """
 
+from typing import Optional
+
 import numpy as np
 
 from scipy.linalg import cholesky
@@ -17,7 +19,13 @@ from matplotlib import pyplot as plt
 from field_map import FieldMap
 
 
-def plot2dcov(mu, Sigma, color="k", nSigma=1, legend=None):
+def plot2dcov(
+    mu: np.ndarray,
+    Sigma: np.ndarray,
+    color: str = "k",
+    nSigma: int = 1,
+    legend: Optional[str] = None,
+) -> None:
     """
     Plots a 2D covariance ellipse given the Gaussian distribution parameters.
     The function expects the mean and covariance matrix to ignore the theta parameter.
@@ -48,7 +56,7 @@ def plot2dcov(mu, Sigma, color="k", nSigma=1, legend=None):
     plt.scatter(mu[0], mu[1], color=color)
 
 
-def plot_field(detected_marker):
+def plot_field(detected_marker: int) -> None:
     """
     Plots the field and highlights the currently detected marker.
 
@@ -81,7 +89,7 @@ def plot_field(detected_marker):
         plt.text(center[0] - 9, center[1] - 10, str(k))
 
 
-def plot_robot(state):
+def plot_robot(state: np.ndarray) -> None:
     """
     Plots a circle at the center of the robot and a line to depict the yaw.
 
@@ -106,7 +114,9 @@ def plot_robot(state):
     plt.plot(orientation_line[0], orientation_line[1], "black")
 
 
-def plot_observation(state, noise_free_observation, noisy_observation):
+def plot_observation(
+    state: np.ndarray, noise_free_observation: np.ndarray, noisy_observation: np.ndarray
+) -> None:
     """
     Plot two lines corresponding to the noisy and noise free observations from the robot to respective landmarks.
 

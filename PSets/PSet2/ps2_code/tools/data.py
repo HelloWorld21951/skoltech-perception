@@ -15,6 +15,7 @@ import numpy as np
 import scipy.io
 from matplotlib import pyplot as plt
 from numpy.random import multivariate_normal as sample2d
+from typing import Tuple
 
 from field_map import FieldMap
 from tools.objects import FilterDebugData
@@ -27,7 +28,7 @@ from tools.task import get_observation
 from tools.task import sample_from_odometry
 
 
-def generate_motion(t, dt):
+def generate_motion(t: float, dt: float):
     """
     Generates a square motion.
 
@@ -60,7 +61,15 @@ def generate_motion(t, dt):
     return u
 
 
-def generate_data(initial_pose, num_steps, alphas, bearing_std, dt, animate=False, plot_pause_s=0.01):
+def generate_data(
+    initial_pose: np.ndarray,
+    num_steps: float,
+    alphas: np.ndarray,
+    bearing_std: float,
+    dt: float,
+    animate: bool = False,
+    plot_pause_s: float = 0.01,
+) -> SimulationData:
     """
     Generates the trajectory of the robot using square path given by `generate_motion`.
 
@@ -88,11 +97,14 @@ def generate_data(initial_pose, num_steps, alphas, bearing_std, dt, animate=Fals
         plt.ion()
 
     data_length = num_steps + 1
-    filter_data = FilterInputData(np.zeros((data_length, motion_dim)),
-                                  np.zeros((data_length, observation_dim)))
-    debug_data = FilterDebugData(np.zeros((data_length, state_dim)),
-                                 np.zeros((data_length, state_dim)),
-                                 np.zeros((data_length, observation_dim)))
+    filter_data = FilterInputData(
+        np.zeros((data_length, motion_dim)), np.zeros((data_length, observation_dim))
+    )
+    debug_data = FilterDebugData(
+        np.zeros((data_length, state_dim)),
+        np.zeros((data_length, state_dim)),
+        np.zeros((data_length, observation_dim)),
+    )
 
     debug_data.real_robot_path[0] = initial_pose
     debug_data.noise_free_robot_path[0] = initial_pose
@@ -109,41 +121,54 @@ def generate_data(initial_pose, num_steps, alphas, bearing_std, dt, animate=Fals
         filter_data.motion_commands[i, :] = generate_motion(t, dt)
 
         # Noise-free robot pose.
-        debug_data.noise_free_robot_path[i, :] = \
-            sample_from_odometry(debug_data.noise_free_robot_path[i - 1],
-                                 filter_data.motion_commands[i],
-                                 np.array([0, 0, 0, 0]))
+        debug_data.noise_free_robot_path[i, :] = sample_from_odometry(
+            debug_data.noise_free_robot_path[i - 1],
+            filter_data.motion_commands[i],
+            np.array([0, 0, 0, 0]),
+        )
 
         # Move the robot based on the noisy motion command execution.
-        debug_data.real_robot_path[i, :] = \
-            sample_from_odometry(debug_data.real_robot_path[i - 1],
-                                 filter_data.motion_commands[i],
-                                 alphas)
+        debug_data.real_robot_path[i, :] = sample_from_odometry(
+            debug_data.real_robot_path[i - 1], filter_data.motion_commands[i], alphas
+        )
 
         # Simulate Observation
 
         # (n / 2) causes each landmark to be viewed twice.
         lm_id = int(np.mod(np.floor(i / 2), field_map.num_landmarks))
-        debug_data.noise_free_observations[i, :] = \
-            get_observation(debug_data.real_robot_path[i], lm_id)
+        debug_data.noise_free_observations[i, :] = get_observation(
+            debug_data.real_robot_path[i], lm_id
+        )
 
         # Generate observation noise.
         observation_noise = sample2d(np.zeros(observation_dim), Q)
 
         # Generate noisy observation as observed by the robot for the filter.
-        filter_data.observations[i, :] = debug_data.noise_free_observations[i] + observation_noise
+        filter_data.observations[i, :] = (
+            debug_data.noise_free_observations[i] + observation_noise
+        )
 
         if animate:
             plt.clf()
 
             plot_field(lm_id)
             plot_robot(debug_data.real_robot_path[i])
-            plot_observation(debug_data.real_robot_path[i],
-                             debug_data.noise_free_observations[i],
-                             filter_data.observations[i])
+            plot_observation(
+                debug_data.real_robot_path[i],
+                debug_data.noise_free_observations[i],
+                filter_data.observations[i],
+            )
 
-            plt.plot(debug_data.real_robot_path[1:i, 0], debug_data.real_robot_path[1:i, 1], 'b')
-            plt.plot(debug_data.noise_free_robot_path[1:i, 0], debug_data.noise_free_robot_path[1:i, 1], 'g')
+            plt.plot(
+                debug_data.real_robot_path[1:i, 0],
+                debug_data.real_robot_path[1:i, 1],
+                "b",
+            )
+            plt.plot(
+                debug_data.noise_free_robot_path[1:i, 0],
+                debug_data.noise_free_robot_path[1:i, 1],
+                "g",
+            )
 
             plt.draw()
             plt.pause(plot_pause_s)
@@ -161,7 +186,7 @@ def generate_data(initial_pose, num_steps, alphas, bearing_std, dt, animate=Fals
     return SimulationData(num_steps, filter_data, debug_data)
 
 
-def save_data(data, file_path):
+def save_data(data: Tuple, file_path: str) -> None:
     """
     Saves the simulation's input data to the given filename.
 
@@ -174,17 +199,19 @@ def save_data(data, file_path):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    with open(file_path, 'wb') as data_file:
-        np.savez(data_file,
-                 num_steps=data.num_steps,
-                 noise_free_motion=data.filter.motion_commands,
-                 real_observations=data.filter.observations,
-                 noise_free_observations=data.debug.noise_free_observations,
-                 real_robot_path=data.debug.real_robot_path,
-                 noise_free_robot_path=data.debug.noise_free_robot_path)
+    with open(file_path, "wb") as data_file:
+        np.savez(
+            data_file,
+            num_steps=data.num_steps,
+            noise_free_motion=data.filter.motion_commands,
+            real_observations=data.filter.observations,
+            noise_free_observations=data.debug.noise_free_observations,
+            real_robot_path=data.debug.real_robot_path,
+            noise_free_robot_path=data.debug.noise_free_robot_path,
+        )
 
 
-def load_data(data_filename):
+def load_data(data_filename: str) -> SimulationData:
     """
     Load existing data from a given filename.
     Accepted file formats are pickled `npy` and MATLAB `mat` extensions.
@@ -195,31 +222,36 @@ def load_data(data_filename):
     """
 
     if not os.path.isfile(data_filename):
-        raise Exception('The data file {} does not exist'.format(data_filename))
+        raise Exception("The data file {} does not exist".format(data_filename))
 
     file_extension = data_filename[-3:]
-    if file_extension not in {'mat', 'npy'}:
-        raise TypeError('{} is an unrecognized file extension. Accepted file '
-                        'formats include "npy" and "mat"'.format(file_extension))
+    if file_extension not in {"mat", "npy"}:
+        raise TypeError(
+            "{} is an unrecognized file extension. Accepted file "
+            'formats include "npy" and "mat"'.format(file_extension)
+        )
 
     num_steps = 0
     filter_data = None
     debug_data = None
 
-    if file_extension == 'npy':
+    if file_extension == "npy":
         with np.load(data_filename) as data:
-            num_steps = np.asscalar(data['num_steps'])
-            filter_data = FilterInputData(data['noise_free_motion'],
-                                          data['real_observations'])
-            debug_data = FilterDebugData(data['real_robot_path'],
-                                         data['noise_free_robot_path'],
-                                         data['noise_free_observations'])
-    elif file_extension == 'mat':
+            num_steps = np.asscalar(data["num_steps"])
+            filter_data = FilterInputData(
+                data["noise_free_motion"], data["real_observations"]
+            )
+            debug_data = FilterDebugData(
+                data["real_robot_path"],
+                data["noise_free_robot_path"],
+                data["noise_free_observations"],
+            )
+    elif file_extension == "mat":
         data = scipy.io.loadmat(data_filename)
-        if 'data' not in data:
-            raise TypeError('Unrecognized data file')
+        if "data" not in data:
+            raise TypeError("Unrecognized data file")
 
-        data = data['data']
+        data = data["data"]
         num_steps = data.shape[0]
 
         # Convert to zero-indexed landmark IDs.

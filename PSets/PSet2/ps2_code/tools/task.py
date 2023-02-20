@@ -16,7 +16,7 @@ from tools.objects import Gaussian
 from field_map import FieldMap
 
 
-def wrap_angle(angle):
+def wrap_angle(angle: float) -> float:
     """
     Wraps the given angle to the range [-pi, +pi].
 
@@ -35,7 +35,9 @@ def wrap_angle(angle):
     return angle
 
 
-def sample_from_odometry(state, motion, alphas):
+def sample_from_odometry(
+    state: np.ndarray, motion: np.ndarray, alphas: np.ndarray
+) -> np.ndarray:
     """
     Predicts the next state (a noisy version) given the current state, and the motion command.
 
@@ -58,13 +60,15 @@ def sample_from_odometry(state, motion, alphas):
     noisy_motion = np.zeros(motion.size)
 
     noisy_motion[0] = sample1d(drot1, np.sqrt(a1 * (drot1 ** 2) + a2 * (dtran ** 2)))
-    noisy_motion[1] = sample1d(dtran, np.sqrt(a3 * (dtran ** 2) + a4 * ((drot1 ** 2) + (drot2 ** 2))))
+    noisy_motion[1] = sample1d(
+        dtran, np.sqrt(a3 * (dtran ** 2) + a4 * ((drot1 ** 2) + (drot2 ** 2)))
+    )
     noisy_motion[2] = sample1d(drot2, np.sqrt(a1 * (drot2 ** 2) + a2 * (dtran ** 2)))
 
     return get_prediction(state, noisy_motion)
 
 
-def get_observation(state, lm_id):
+def get_observation(state: np.ndarray, lm_id: int) -> np.ndarray:
     """
     Generates a sample observation given the current state of the robot and the marker id of which to observe.
 
@@ -87,7 +91,7 @@ def get_observation(state, lm_id):
     return np.array([wrap_angle(bearing), lm_id])
 
 
-def get_prediction(state, motion):
+def get_prediction(state: np.ndarray, motion: np.ndarray) -> np.ndarray:
     """
     Predicts the next state given state and the motion command.
 
@@ -117,7 +121,8 @@ def get_prediction(state, motion):
 
     return np.array([x, y, theta])
 
-def get_motion_noise_covariance(motion, alphas):
+
+def get_motion_noise_covariance(motion: np.ndarray, alphas: np.ndarray) -> np.ndarray:
     """
     :param motion: The motion command at the current time step (format: [drot1, dtran, drot2]).
     :param alphas: The motion noise parameters (format [a1, a2, a3, a4]).
@@ -133,12 +138,16 @@ def get_motion_noise_covariance(motion, alphas):
     drot1, dtran, drot2 = motion
     a1, a2, a3, a4 = alphas
 
-    return np.diag([a1 * drot1 ** 2 + a2 * dtran ** 2,
-                    a3 * dtran ** 2 + a4 * (drot1 ** 2 + drot2 ** 2),
-                    a1 * drot2 ** 2 + a2 * dtran ** 2])
+    return np.diag(
+        [
+            a1 * drot1 ** 2 + a2 * dtran ** 2,
+            a3 * dtran ** 2 + a4 * (drot1 ** 2 + drot2 ** 2),
+            a1 * drot2 ** 2 + a2 * dtran ** 2,
+        ]
+    )
 
 
-def get_gaussian_statistics(samples):
+def get_gaussian_statistics(samples: np.ndarray) -> Gaussian:
     """
     Computes the parameters of the samples assuming the samples are part of a Gaussian distribution.
 
@@ -161,6 +170,6 @@ def get_gaussian_statistics(samples):
     # Compute the samples covariance.
     mu_0 = samples - np.tile(mu, (samples.shape[0], 1))
     mu_0[:, 2] = np.array([wrap_angle(angle) for angle in mu_0[:, 2]])
-    Sigma = mu_0.T @ mu_0 / (samples.shape[0]-1)
+    Sigma = mu_0.T @ mu_0 / (samples.shape[0] - 1)
 
     return Gaussian(mu, Sigma)

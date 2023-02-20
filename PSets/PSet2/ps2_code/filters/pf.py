@@ -18,17 +18,19 @@ from tools.task import wrap_angle
 
 
 class PF(LocalizationFilter):
-    def __init__(self, initial_state, alphas, bearing_std, num_particles, global_localization):
+    def __init__(
+        self, initial_state, alphas, bearing_std, num_particles, global_localization
+    ):
         super(PF, self).__init__(initial_state, alphas, bearing_std)
-        
+
         # TODO add here specific class variables for the PF
 
-    def predict(self, u):
+    def predict(self, u: np.ndarray):
         # TODO Implement here the PF, perdiction part
         self._state_bar.mu = self.mu[np.newaxis].T
         self._state_bar.Sigma = self.Sigma
 
-    def update(self, z):
+    def update(self, z: np.ndarray):
         # TODO implement correction step
         self._state.mu = self._state_bar.mu
         self._state.Sigma = self._state_bar.Sigma
