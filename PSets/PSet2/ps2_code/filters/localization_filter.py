@@ -50,6 +50,7 @@ class LocalizationFilter(ABC):
         # Filter noise parameters.
         self._alphas = alphas
         # Measurement variance.
+        # TODO: add property?
         self._Q = bearing_std ** 2
 
         # Setup the field map.

@@ -84,9 +84,9 @@ class FieldMap(object):
         return self._complete_size_y
 
     @property
-    def landmarks_poses_x(self) -> int:
+    def landmarks_poses_x(self) -> np.ndarray:
         return self._landmark_poses_x
 
     @property
-    def landmarks_poses_y(self) -> int:
+    def landmarks_poses_y(self) -> np.ndarray:
         return self._landmark_poses_y
