@@ -13,7 +13,6 @@ from tools.task import wrap_angle
 
 class EKF(LocalizationFilter):
     def G(self, u: np.ndarray) -> np.ndarray:
-        assert isinstance(u, np.ndarray)
         assert u.shape == (3,)
 
         theta = self.mu[2]
@@ -27,7 +26,6 @@ class EKF(LocalizationFilter):
         )
 
     def V(self, u: np.ndarray) -> np.ndarray:
-        assert isinstance(u, np.ndarray)
         assert u.shape == (3,)
 
         theta = self.mu[2]
@@ -66,7 +64,6 @@ class EKF(LocalizationFilter):
         )
 
     def predict(self, u: np.ndarray) -> None:
-        assert isinstance(u, np.ndarray)
         assert u.shape == (3,)
 
         V = self.V(u)
@@ -78,7 +75,6 @@ class EKF(LocalizationFilter):
         self._state_bar.Sigma = G @ self.Sigma @ G.T + R
 
     def update(self, z: np.ndarray) -> None:
-        assert isinstance(z, np.ndarray)
         assert z.shape == (2,)
 
         landmark_id = int(z[1])
