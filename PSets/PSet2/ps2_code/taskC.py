@@ -8,15 +8,15 @@ ekf = {}
 ekf["input"] = np.load("ekf_data/input_data.npy")
 ekf["output"] = np.load("ekf_data/output_data.npy")
 
-# pf = {}
-# pf['input'] = np.load('out_pf/input_data.npy')
-# pf['output'] = np.load('out_pf/output_data.npy')
+pf = {}
+pf["input"] = np.load("pf_data/input_data.npy")
+pf["output"] = np.load("pf_data/output_data.npy")
 
-filters = [ekf]
+filters = [ekf, pf]
 
 fig, axes = plt.subplots(2, 3, figsize=(13, 6), num="Filter data plots")
 fig.subplots_adjust(0.05, 0.1, 0.95, 0.95, wspace=0.3, hspace=0.3)
-for j, filter in enumerate(zip(filters, ["EKF"])):
+for j, filter in enumerate(zip(filters, ["EKF", "PF"])):
     filter_name = filter[1]
     filter = filter[0]
     for i, coordinate in enumerate(["x", "y", "th"]):
