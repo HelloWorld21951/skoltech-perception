@@ -16,7 +16,7 @@ class EKF(LocalizationFilter):
         assert isinstance(u, np.ndarray)
         assert u.shape == (3,)
 
-        theta = self.mu_bar[2]
+        theta = self.mu[2]
 
         return np.array(
             [
@@ -30,7 +30,7 @@ class EKF(LocalizationFilter):
         assert isinstance(u, np.ndarray)
         assert u.shape == (3,)
 
-        theta = self.mu_bar[2]
+        theta = self.mu[2]
 
         return np.array(
             [
