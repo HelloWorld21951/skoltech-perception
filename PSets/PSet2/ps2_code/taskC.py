@@ -1,68 +1,72 @@
-#!/usr/bin/python
-
 import numpy as np
 import matplotlib.pyplot as plt
+
 from tools.task import wrap_angle
 
-ekf = {}
-ekf["input"] = np.load("ekf_data/input_data.npy")
-ekf["output"] = np.load("ekf_data/output_data.npy")
+ekf_input_file = "ekf_data/input_data.npy"
+ekf_output_file = "ekf_data/output_data.npy"
 
-pf = {}
-pf["input"] = np.load("pf_data/input_data.npy")
-pf["output"] = np.load("pf_data/output_data.npy")
+pf_input_file = "pf_data/input_data.npy"
+pf_output_file = "pf_data/output_data.npy"
 
-filters = [ekf, pf]
 
-fig, axes = plt.subplots(2, 3, figsize=(13, 6), num="Filter data plots")
-fig.subplots_adjust(0.05, 0.1, 0.95, 0.95, wspace=0.3, hspace=0.3)
-for j, filter in enumerate(zip(filters, ["EKF", "PF"])):
-    filter_name = filter[1]
-    filter = filter[0]
-    for i, coordinate in enumerate(["x", "y", "th"]):
-        data_error = (
-            filter["output"]["mean_trajectory"][:, i]
-            - filter["input"]["real_robot_path"][:, i]
-        )
-        data_sigma = np.sqrt(filter["output"]["covariance_trajectory"][i, i, :])
-        sigma_1 = (
-            100
-            - (sum(abs(data_error) > data_sigma) / filter["input"]["num_steps"] * 100)
-        ).round(2)
-        sigma_3 = (
-            100
-            - (
-                sum(abs(data_error) > 3 * data_sigma)
-                / filter["input"]["num_steps"]
-                * 100
-            )
-        ).round(2)
-        if i == 2:
-            for k in range(len(data_error)):
-                data_error[k] = wrap_angle(data_error[k])
-        ax = axes[j, i]
-        ax.fill_between(
-            np.arange(filter["input"]["num_steps"]),
-            -3 * data_sigma,
-            3 * data_sigma,
-            color="r",
-            alpha=0.4,
-        )
-        ax.fill_between(
-            np.arange(filter["input"]["num_steps"]),
-            -data_sigma,
-            data_sigma,
-            color="g",
-            alpha=0.4,
-        )
-        ax.plot(data_error)
-        ax.set_title(
-            f"{filter_name}: {coordinate} | $\sigma_1$: {sigma_1}%, $\sigma_3$: {sigma_3}%"
-        )
-        ax.legend(["$3\sigma$", "$\sigma$", coordinate], loc="upper left")
-        ax.set_ylabel("rad" if coordinate == "th" else "cm")
-        ax.set_xlabel("Step")
-        ax.grid()
+figure, axes = plt.subplots(2, 3, figsize=(15, 6), num="Filters results")
+figure.subplots_adjust(0.05, 0.1, 0.95, 0.95, hspace=0.35)
 
-# plt.savefig('taskC', dpi=150)
+
+def plot_filter(input_file: str, output_file: str, row: int) -> None:
+    _input = np.load(input_file)
+    _output = np.load(output_file)
+
+    movement_params = ["x", "y", "theta"]
+    for i, param in enumerate(movement_params):
+        error = _output["mean_trajectory"][:, i] - _input["real_robot_path"][:, i]
+        if param == "theta":
+            for j in range(len(error)):
+                error[j] = wrap_angle(error[j])
+        cov = _output["covariance_trajectory"][i, i, :]
+        sigma = np.sqrt(cov)
+
+        out_of_3_sigma = []
+        err_in_3_sigma_percent = 100
+        for j in range(error.shape[0]):
+            if np.abs(error[j]) > 3 * sigma[j]:
+                out_of_3_sigma.append(j)
+                err_in_3_sigma_percent -= 100 / _input["num_steps"]
+
+        axes[row - 1, i].fill_between(
+            x=np.arange(_input["num_steps"]),
+            y1=-3 * sigma,
+            y2=3 * sigma,
+            color="red",
+            alpha=0.15,
+        )
+        axes[row - 1, i].fill_between(
+            x=np.arange(_input["num_steps"]),
+            y1=-sigma,
+            y2=sigma,
+            color="blue",
+            alpha=0.15,
+        )
+        axes[row - 1, i].plot(
+            error,
+            markevery=out_of_3_sigma,
+            marker="o",
+            mfc="red",
+            mec="red",
+            markersize=5,
+        )
+
+        axes[row - 1, i].set_title(
+            f"{param.capitalize()} error in 3*sigma: {err_in_3_sigma_percent}%"
+        )
+        axes[row - 1, i].set_ylabel("rad" if param == "theta" else "cm")
+        axes[row - 1, i].set_xlabel("Step")
+
+        axes[row - 1, i].grid()
+    figure.show()
+
+
+plot_filter(ekf_input_file, ekf_output_file, 1)
+plot_filter(pf_input_file, pf_output_file, 2)
 plt.show()
