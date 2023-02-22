@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from tools.task import wrap_angle
 
 filters = ["EKF", "PF"]
+movement_params = ["x", "y", "theta"]
 
 ekf_input_file = "ekf_data/input_data.npy"
 ekf_output_file = "ekf_data/output_data.npy"
@@ -19,7 +20,6 @@ def plot_filter(input_file: str, output_file: str, row: int) -> None:
     _input = np.load(input_file)
     _output = np.load(output_file)
 
-    movement_params = ["x", "y", "theta"]
     for i, param in enumerate(movement_params):
         error = _output["mean_trajectory"][:, i] - _input["real_robot_path"][:, i]
         if param == "theta":
