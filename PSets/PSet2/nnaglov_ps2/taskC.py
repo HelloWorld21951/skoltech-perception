@@ -42,13 +42,6 @@ def plot_filter(input_file: str, output_file: str, row: int) -> None:
             color="red",
             alpha=0.15,
         )
-        axes[row - 1, i].fill_between(
-            x=np.arange(_input["num_steps"]),
-            y1=-sigma,
-            y2=sigma,
-            color="blue",
-            alpha=0.15,
-        )
         axes[row - 1, i].plot(
             error,
             markevery=out_of_3_sigma,
