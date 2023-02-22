@@ -2,3 +2,4 @@ __pycache__
 ekf_data/
 pf_data/
 video/
+*.zip
