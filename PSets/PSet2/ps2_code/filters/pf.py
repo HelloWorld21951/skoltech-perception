@@ -102,20 +102,22 @@ class PF(LocalizationFilter):
         self._number_of_particles = num_particles
         self._default_weight = 1 / num_particles
 
-        X = np.random.multivariate_normal(
+        self.X = np.random.multivariate_normal(
             self.mu, self.Sigma, self._number_of_particles
         )
-        W = np.ones(X.shape[0]) * self._default_weight
+        self.W = np.ones(self.X.shape[0]) * self._default_weight
 
-        self._particles = ParticlesList([Particle(x, w) for x, w in zip(X, W)])
+        self._particles = ParticlesList(
+            [Particle(x, w) for x, w in zip(self.X, self.W)]
+        )
 
     def _resample(self) -> None:
         uniform_X = np.random.multivariate_normal(
             self.mu, self.Sigma, self._number_of_particles
         )
 
-        X = np.zeros((self._particles.size, 3,))
-        W = np.ones(self._particles.size) * self._default_weight
+        self.X = np.zeros((self._particles.size, 3,))
+        self.W = np.ones(self._particles.size) * self._default_weight
 
         c = np.cumsum(self._particles.weights)
         r = np.random.uniform(0, self._default_weight)
@@ -128,17 +130,17 @@ class PF(LocalizationFilter):
                 if cnt_curr_X >= self._number_of_particles:
                     break
             else:
-                X[cnt_new_X] = self._particles.states[cnt_curr_X]
-                W[cnt_new_X] = self._particles.weights[cnt_curr_X]
+                self.X[cnt_new_X] = self._particles.states[cnt_curr_X]
+                self.W[cnt_new_X] = self._particles.weights[cnt_curr_X]
                 cnt_new_X += 1
 
-        W *= cnt_new_X / (self._particles.size * np.sum(W))
+        self.W *= cnt_new_X / (self._particles.size * np.sum(self.W))
 
-        X[cnt_new_X:] = uniform_X[cnt_new_X:]
-        W[cnt_new_X:] = self._default_weight
+        self.X[cnt_new_X:] = uniform_X[cnt_new_X:]
+        self.W[cnt_new_X:] = self._default_weight
 
-        self._particles.set_states(X)
-        self._particles.set_weights(W)
+        self._particles.set_states(self.X)
+        self._particles.set_weights(self.W)
         return
 
     def predict(self, u: np.ndarray):
