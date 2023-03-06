@@ -100,7 +100,7 @@ def main():
             slam.predict(u)
 
             slam.update(z)
-            slam.solve()  # Comment this out for tasks 1C and 2E
+            # slam.solve()  # Comment this out for tasks 1C and 2E
 
             if not should_update_plots:
                 continue
@@ -164,15 +164,15 @@ def main():
                     color="orange",
                 )
                 # comment this out if solve() is not called iteratively (tasks 1C and 2E)
-                plot2dcov(
-                    np.array(prev_node[:-1]),
-                    np.linalg.inv(inf_matrix.toarray())[
-                        -3 - 2 * obs_since_last_state : -1 - 2 * obs_since_last_state,
-                        -3 - 2 * obs_since_last_state : -1 - 2 * obs_since_last_state,
-                    ],
-                    "b",
-                    nSigma=3,
-                )
+                # plot2dcov(
+                #     np.array(prev_node[:-1]),
+                #     np.linalg.inv(inf_matrix.toarray())[
+                #         -3 - 2 * obs_since_last_state : -1 - 2 * obs_since_last_state,
+                #         -3 - 2 * obs_since_last_state : -1 - 2 * obs_since_last_state,
+                #     ],
+                #     "b",
+                #     nSigma=3,
+                # )
                 plt.draw()
                 plt.pause(args.plot_pause_len)
 
@@ -191,7 +191,15 @@ def main():
 
     print(f"Information matrix:\n{slam.Q}")
 
-    # slam.graph.solve(mrob.LM)  # Uncomment this for task 2E
+    # Uncomment this for task 2E (Gaussian-Newton algorithm)
+    #
+    # for i in range(10):
+    #     slam.graph.solve(mrob.GN)
+    #     print(f"Iteration {i + 1} -> error: {slam.graph.chi2()}")
+
+    # Uncomment this for task 2E (Levenberg-Marquard algorithm)
+    #
+    # slam.graph.solve(mrob.LM)
 
     plot_chi2(slam.chi2, args.dt)
     plot_matrix(slam.graph.get_adjacency_matrix(), "Adjacency matrix")

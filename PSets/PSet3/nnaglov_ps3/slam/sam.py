@@ -58,7 +58,7 @@ class Sam(SlamBase):
     def update(self, z):
         for observation in z:
             obs_lm_id = int(observation[-1])
-            initializeLandmark = not bool(self.landmark_ids.get(obs_lm_id, 0))
+            initializeLandmark = np.logical_not(self.landmark_ids.get(obs_lm_id, 0))
             if initializeLandmark:
                 self.landmark_ids[obs_lm_id] = self.graph.add_node_landmark_2d(
                     np.zeros(2)
