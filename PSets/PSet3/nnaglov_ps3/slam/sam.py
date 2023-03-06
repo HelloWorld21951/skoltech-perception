@@ -39,10 +39,10 @@ class Sam(SlamBase):
         self.graph.add_factor_1pose_2d(
             initial_state.mu, self.prev_node, np.linalg.inv(initial_state.Sigma)
         )
-        # with mrob.ostream_redirect(stdout=True, stderr=True):
-        #     self.graph.print(True)
+        # self.graph.print(True)
 
     def predict(self, u):
+        # print(f"\nEstimated state:\n{self.graph.get_estimated_state()}\n")
         J_u = state_jacobian(
             self.graph.get_estimated_state()[self.prev_node].flatten(), u
         )[-1]

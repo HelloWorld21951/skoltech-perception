@@ -167,9 +167,9 @@ def plot_chi2(chi2: List[float], dt: float) -> None:
     """
     plt.figure(figsize=(12, 7))
     plt.plot(np.linspace(dt, dt * len(chi2), len(chi2)), chi2)
-    plt.title("Chi2")
+    plt.title("Chi2 error")
     plt.xlabel("Time, s")
-    plt.ylabel("Chi2, m")
+    plt.ylabel("Chi2")
     plt.grid()
     plt.show()
 

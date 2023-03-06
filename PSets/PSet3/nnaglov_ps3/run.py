@@ -47,6 +47,8 @@ def main():
 
     Q = np.diag(beta**2)
 
+    chi2 = []
+
     slam = Sam(
         initial_state=initial_state,
         alphas=alphas,
@@ -95,12 +97,10 @@ def main():
             # Observation at the current step.
             z = data.filter.observations[t]
 
-            # TODO SLAM predict(u)
             slam.predict(u)
 
-            # TODO SLAM update
             slam.update(z)
-            slam.solve()
+            slam.solve()  # Comment this out for tasks 1C and 2E
 
             if not should_update_plots:
                 continue
@@ -136,7 +136,6 @@ def main():
                 "*g",
             )
 
-            # TODO plot SLAM solution
             nodes = np.array(
                 [i.flatten() for i in slam.graph.get_estimated_state()], dtype=object
             )
@@ -147,39 +146,52 @@ def main():
             nodes_for_plot_obs_states = [nodes[i] for i in obs_states]
             nodes_for_plot_non_obs_states = [nodes[i] for i in non_obs_states]
 
-            plt.plot(
-                [i[0] for i in nodes_for_plot_non_obs_states],
-                [i[1] for i in nodes_for_plot_non_obs_states],
-                "blue",
-            )
-
-            plt.scatter(
-                [i[0] for i in nodes_for_plot_obs_states],
-                [i[1] for i in nodes_for_plot_obs_states],
-                color="orange",
-            )
-
             obs_since_last_state = (len(nodes) - 1) - non_obs_states[-1]
 
             prev_node = nodes[slam.prev_node]
             inf_matrix = slam.graph.get_information_matrix()
-            plot2dcov(
-                np.array(prev_node[:-1]),
-                np.linalg.inv(inf_matrix.toarray())[
-                    -3 - 2 * obs_since_last_state : -1 - 2 * obs_since_last_state,
-                    -3 - 2 * obs_since_last_state : -1 - 2 * obs_since_last_state,
-                ],
-                "b",
-                nSigma=3,
-            )
 
             if should_show_plots:
-                # Draw all the plots and pause to create an animation effect.
+                plt.plot(
+                    [i[0] for i in nodes_for_plot_non_obs_states],
+                    [i[1] for i in nodes_for_plot_non_obs_states],
+                    "blue",
+                )
+
+                plt.scatter(
+                    [i[0] for i in nodes_for_plot_obs_states],
+                    [i[1] for i in nodes_for_plot_obs_states],
+                    color="orange",
+                )
+                # comment this out if solve() is not called iteratively (tasks 1C and 2E)
+                plot2dcov(
+                    np.array(prev_node[:-1]),
+                    np.linalg.inv(inf_matrix.toarray())[
+                        -3 - 2 * obs_since_last_state : -1 - 2 * obs_since_last_state,
+                        -3 - 2 * obs_since_last_state : -1 - 2 * obs_since_last_state,
+                    ],
+                    "b",
+                    nSigma=3,
+                )
                 plt.draw()
                 plt.pause(args.plot_pause_len)
 
             if should_write_movie:
                 movie_writer.grab_frame()
+
+    for idx in non_obs_states:
+        print(
+            f"Node ID: {idx}\t->\tPosition: {slam.graph.get_estimated_state()[idx].T}"
+        )
+
+    for idx in obs_states:
+        print(
+            f"Landmark ID: {idx}\t->\tPosition: {slam.graph.get_estimated_state()[idx].T}"
+        )
+
+    print(f"Information matrix:\n{slam.Q}")
+
+    # slam.graph.solve(mrob.LM)  # Uncomment this for task 2E
 
     plot_chi2(slam.chi2, args.dt)
     plot_matrix(slam.graph.get_adjacency_matrix(), "Adjacency matrix")
